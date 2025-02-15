@@ -3,15 +3,15 @@ import { central, db1, db2, db3, vault } from "./databases.js";
 
 // central: database identifies which database the users are stored within
 const val = await central(1);
-console.log(val); // returns-> db1
+console.log("Central Data Base (db1, db2 or db3): ", val); // returns-> db1
 
 // db1, db2. db3: databases contain the user's basic information, including username, website, and company.
 const val2 = await db1(1)
-console.log(val2);
+console.log("Basic Information(dbs): ", val2);
 
 // val: The personal data for each user is contained within the vault database since its access and usage is restricted by law.
 const val3 = await vault(1);
-console.log(val3);
+console.log("Private Information(vault): ", val3);
 
 
 
@@ -23,27 +23,41 @@ async function getUserData(id) {
             db2: db2,
             db3: db3,
         };
-        const dbCenter = await central(id);
-
-        if (id > 10) {
-            throw new Error ("Hey dummy this data base does not exist!")
-        }
+        const dbCentral = await central(id);
           
-          console.log(dbCenter);
+          console.log(`The DataBase for the id "${id}" is: ${dbCentral}`);
         
-        
-          const [dbData, vaultData] = await Promise.all([dbs[dbCenter](id), vault(id)])
-          return {
+          // console.log(dbs[dbCentral](id))
+
+          // const [dbData, vaultData] = await Promise.all([dbs[dbCentral](id), vault(id)])
+
+          const dbData = dbs[dbCentral](id); // Basic Information
+          const vaultData = vault(id); // Private Information
+
+          
+          return await Promise.all([dbData, vaultData])
+          .then( ([dbData, vaultData]) => {return {
+            id: id,
             name: vaultData.name,
             username: dbData.username,
             email: vaultData.email,
-          }
-    } catch (error) {
-       return Promise.reject(error.message);
-        
-    }
+            address: vaultData.address,
+            phone: vaultData.phone,
+            website: dbData.website,
+            company: dbData.company
+          }}) 
+          
+          // return Promise.all([dbData, vaultData])
+          // .then(result => console.log(result));
 
+        } catch (error) {
+          return Promise.reject(error.message);
+        }
 }
 
-const user = await getUserData(15);
+const user = await getUserData(3);
 console.log(user);
+
+// getUserData(5);
+
+// getUserData(5).then((data)=> console.log(data))
